@@ -10,6 +10,7 @@ export default function() {
       alpha,
       strength = constant(-30),
       strengths,
+      multiplier = constant(1.0),
       distanceMin2 = 1,
       distanceMax2 = Infinity,
       theta2 = 0.81;
@@ -58,7 +59,8 @@ export default function() {
     var x = quad.x - node.x,
         y = quad.y - node.y,
         w = x2 - x1,
-        l = x * x + y * y;
+        l = x * x + y * y,
+        m = Math.min(1.0, Math.max(0.0, multiplier(alpha)));
 
     // Apply the Barnes-Hut approximation if possible.
     // Limit forces for very close nodes; randomize direction if coincident.
@@ -84,7 +86,7 @@ export default function() {
     }
 
     do if (quad.data !== node) {
-      w = strengths[quad.data.index] * alpha / l;
+      w = strengths[quad.data.index] * m * alpha / l;
       node.vx += x * w;
       node.vy += y * w;
     } while (quad = quad.next);
@@ -98,6 +100,10 @@ export default function() {
 
   force.strength = function(_) {
     return arguments.length ? (strength = typeof _ === "function" ? _ : constant(+_), initialize(), force) : strength;
+  };
+
+  force.multiplier = function(_) {
+    return arguments.length ? (multiplier = typeof _ === "function" ? _ : constant(+_), force) : multiplier;
   };
 
   force.distanceMin = function(_) {

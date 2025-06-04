@@ -4,6 +4,7 @@ export default function(radius, x, y) {
   var nodes,
       strength = constant(0.1),
       strengths,
+      multiplier = constant(1.0),
       radiuses;
 
   if (typeof radius !== "function") radius = constant(+radius);
@@ -11,12 +12,14 @@ export default function(radius, x, y) {
   if (y == null) y = 0;
 
   function force(alpha) {
+    var m = Math.min(1.0, Math.max(0.0, multiplier(alpha)));
+    
     for (var i = 0, n = nodes.length; i < n; ++i) {
       var node = nodes[i],
           dx = node.x - x || 1e-6,
           dy = node.y - y || 1e-6,
           r = Math.sqrt(dx * dx + dy * dy),
-          k = (radiuses[i] - r) * strengths[i] * alpha / r;
+          k = (radiuses[i] - r) * strengths[i] * m * alpha / r;
       node.vx += dx * k;
       node.vy += dy * k;
     }
@@ -39,6 +42,10 @@ export default function(radius, x, y) {
 
   force.strength = function(_) {
     return arguments.length ? (strength = typeof _ === "function" ? _ : constant(+_), initialize(), force) : strength;
+  };
+
+  force.multiplier = function(_) {
+    return arguments.length ? (multiplier = typeof _ === "function" ? _ : constant(+_), force) : multiplier;
   };
 
   force.radius = function(_) {

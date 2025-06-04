@@ -15,18 +15,20 @@ export default function(radius) {
       radii,
       random,
       strength = 1,
+      multiplier = constant(1.0),
       iterations = 1;
 
   if (typeof radius !== "function") radius = constant(radius == null ? 1 : +radius);
 
-  function force() {
+  function force(alpha) {
     var i, n = nodes.length,
         tree,
         node,
         xi,
         yi,
         ri,
-        ri2;
+        ri2,
+        m = Math.min(1.0, Math.max(0.0, multiplier(alpha)));
 
     for (var k = 0; k < iterations; ++k) {
       tree = quadtree(nodes, x, y).visitAfter(prepare);
@@ -49,7 +51,7 @@ export default function(radius) {
           if (l < r * r) {
             if (x === 0) x = jiggle(random), l += x * x;
             if (y === 0) y = jiggle(random), l += y * y;
-            l = (r - (l = Math.sqrt(l))) / l * strength;
+            l = (r - (l = Math.sqrt(l))) / l * strength * m;
             node.vx += (x *= l) * (r = (rj *= rj) / (ri2 + rj));
             node.vy += (y *= l) * r;
             data.vx -= x * (r = 1 - r);
@@ -90,6 +92,10 @@ export default function(radius) {
 
   force.strength = function(_) {
     return arguments.length ? (strength = +_, force) : strength;
+  };
+
+  force.multiplier = function(_) {
+    return arguments.length ? (multiplier = typeof _ === "function" ? _ : constant(+_), force) : multiplier;
   };
 
   force.radius = function(_) {

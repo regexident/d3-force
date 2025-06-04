@@ -4,13 +4,15 @@ export default function(x) {
   var strength = constant(0.1),
       nodes,
       strengths,
+      multiplier = constant(1.0),
       xz;
 
   if (typeof x !== "function") x = constant(x == null ? 0 : +x);
 
   function force(alpha) {
+    var m = Math.min(1.0, Math.max(0.0, multiplier(alpha)));
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
-      node = nodes[i], node.vx += (xz[i] - node.x) * strengths[i] * alpha;
+      node = nodes[i], node.vx += (xz[i] - node.x) * strengths[i] * m * alpha;
     }
   }
 
@@ -31,6 +33,10 @@ export default function(x) {
 
   force.strength = function(_) {
     return arguments.length ? (strength = typeof _ === "function" ? _ : constant(+_), initialize(), force) : strength;
+  };
+
+  force.multiplier = function(_) {
+    return arguments.length ? (multiplier = typeof _ === "function" ? _ : constant(+_), force) : multiplier;
   };
 
   force.x = function(_) {

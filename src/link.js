@@ -15,6 +15,7 @@ export default function(links) {
   var id = index,
       strength = defaultStrength,
       strengths,
+      multiplier = constant(1.0),
       distance = constant(30),
       distances,
       nodes,
@@ -30,13 +31,15 @@ export default function(links) {
   }
 
   function force(alpha) {
+    var m = Math.min(1.0, Math.max(0.0, multiplier(alpha)));
+    
     for (var k = 0, n = links.length; k < iterations; ++k) {
       for (var i = 0, link, source, target, x, y, l, b; i < n; ++i) {
         link = links[i], source = link.source, target = link.target;
         x = target.x + target.vx - source.x - source.vx || jiggle(random);
         y = target.y + target.vy - source.y - source.vy || jiggle(random);
         l = Math.sqrt(x * x + y * y);
-        l = (l - distances[i]) / l * alpha * strengths[i];
+        l = (l - distances[i]) / l * alpha * strengths[i] * m;
         x *= l, y *= l;
         target.vx -= x * (b = bias[i]);
         target.vy -= y * b;
@@ -107,6 +110,10 @@ export default function(links) {
 
   force.strength = function(_) {
     return arguments.length ? (strength = typeof _ === "function" ? _ : constant(+_), initializeStrength(), force) : strength;
+  };
+
+  force.multiplier = function(_) {
+    return arguments.length ? (multiplier = typeof _ === "function" ? _ : constant(+_), force) : multiplier;
   };
 
   force.distance = function(_) {
